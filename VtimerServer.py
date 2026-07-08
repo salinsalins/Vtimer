@@ -18,10 +18,9 @@ from tango.server import attribute, command
 from TangoServerPrototype import TangoServerPrototype
 from Vtimer import Vtimer
 
-ORGANIZATION_NAME = 'BINP'
 APPLICATION_NAME = 'Vtimer Python Tango Server'
 APPLICATION_NAME_SHORT = os.path.basename(__file__).replace('.py', '')
-APPLICATION_VERSION = '1.3'
+APPLICATION_VERSION = '1.4'
 
 DEFAULT_PORT = 'COM17'
 DEFAULT_ADDRESS = 1
@@ -344,7 +343,7 @@ class VtimerServer(TangoServerPrototype):
         super().init_device()
         self.pre = f'{self.get_name()} Vtimer'
         msg = f'Initialization'
-        self.log_debug(msg)
+        self.debug(msg)
         self.set_state(DevState.INIT, msg)
         #
         self.last_pulse_time = 0.0
@@ -362,11 +361,22 @@ class VtimerServer(TangoServerPrototype):
         self.tmr = Vtimer(port, addr, **kwargs)
         self.pre = f'{self.get_name()} {self.tmr.pre}'
         # check if device OK
+        self.config['mode'] = self.config.get('mode', 0)
+        self.config['output'] = self.config.get('output', True)
         if self.tmr.ready:
-            if 'mode' in self.config:
-                self.write_mode(self.config.get('mode', 0))
-            if 'output' in self.config:
-                self.write_output(self.config.get('output', True))
+            self.write_mode(self.config['mode'])
+            self.write_output(self.config['output'])
+            # set default values for write attributes
+            attribute_list = self.attribute_list_query_ex()
+            for attribute in attribute_list:
+                if attribute.writable == AttrWriteType.WRITE or attribute.writable == AttrWriteType.READ_WRITE:
+                    name = attribute.name
+                    attr = self.get_attribute_by_name('ampli')
+                    # attr_obj = self.get_device_attr().get_attr_by_name(name)
+                    # attr_obj = self.get_device_attr().get_w_attr_by_name(name)
+                    value = getattr(self, name)
+                    attr.set_write_value(value)
+                    print(f'Set Writing {name} {value}')
             self.run.set_write_value(self.read_run())
             self.mode.set_write_value(self.read_mode())
             self.output.set_write_value(self.read_output())
@@ -377,17 +387,17 @@ class VtimerServer(TangoServerPrototype):
             # set state to running
             msg = 'Created successfully'
             self.set_state(DevState.RUNNING, msg)
-            self.log_info(msg)
+            self.info(msg)
         else:
             msg = 'Created with errors'
             self.set_state(DevState.FAULT, msg)
-            self.log_error(msg)
+            self.error(msg)
 
     def delete_device(self):
         self.tmr.__del__()
         super().delete_device()
         msg = 'Device has been deleted'
-        self.log_info(msg)
+        self.info(msg)
 
     # region ---------------- attributes read --------------
     def read_port(self):
@@ -870,11 +880,11 @@ class VtimerServer(TangoServerPrototype):
             result = self.tmr.write_run(1)
             if result == 1:
                 self.last_pulse_time = time.time()
-                self.log_info('Pulse has been started')
+                self.info('Pulse has been started')
                 self.set_running()
                 return True
         msg = f'Start pulse execution error {self.tmr.error}'
-        self.log_debug(msg)
+        self.debug(msg)
         self.set_fault(msg)
         return False
 
@@ -889,12 +899,12 @@ class VtimerServer(TangoServerPrototype):
                 if result == 1:
                     # self.last_pulse_time = time.time()
                     self.ready = True
-                    self.log_info('Ready for Pulse')
+                    self.info('Ready for Pulse')
                     self.set_running()
                     return True
         self.ready = False
         msg = f'Pulse enable execution error {self.tmr.error}'
-        self.log_debug(msg)
+        self.debug(msg)
         self.set_fault(msg)
         return False
 
@@ -906,7 +916,7 @@ class VtimerServer(TangoServerPrototype):
             self.set_running()
             return result
         msg = f'Fast read channel error {self.tmr.error}'
-        self.log_debug(msg)
+        self.debug(msg)
         self.set_fault(msg)
         return []
     # endregion
