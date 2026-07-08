@@ -47,9 +47,11 @@ class Vtimer(ModbusDevice):
 
     @property
     def ready(self):
-        if time.time() < self.suspend_to:
+        t0 = time.time()
+        if t0 < self.suspend_to:
+            # self.debug(f"Suspended for {self.suspend_to - t0} seconds")
             return False
-        # was suspended try to init
+        # was suspended, try to init
         if self.suspend_to > 0.0:
             self.__del__()
             self.__init__(self.port, self.addr, **self.kwargs)
@@ -231,7 +233,15 @@ def prr(obj):
 
 
 if __name__ == "__main__":
-    ot1 = Vtimer("COM17", 1)
+    try:
+        port = sys.argv[1]
+    except:
+        port = "COM17"
+    try:
+        addr = sys.argv[2]
+    except:
+        addr = 1
+    ot1 = Vtimer(port, addr)
     t_0 = time.time()
     v = ot1.read_run()
     dt = int((time.time() - t_0) * 1000.0)  # ms
@@ -242,8 +252,7 @@ if __name__ == "__main__":
     n = 100
     t_0 = time.time()
     for i in range(n):
-        # v = ot1.write_channel_stop(1, 100)
-        v = ot1.modbus_read(16, 5)
+        v = ot1.write_channel_stop(1, 100)
     dt = ((time.time() - t_0) * 1000.0)  # ms
     a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'write_stop(1)->', v, '%4f ms ' % (dt / n))
     print(a)
