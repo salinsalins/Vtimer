@@ -1,0 +1,23 @@
+{
+    "log_level": 10,
+    "main_window": {
+        "size": [
+            382,
+            683
+        ],
+        "position": [
+            2019,
+            -355
+        ]
+    },
+    "timer_device_name": "binp/nbi/timer1",
+    "periodical": false,
+    "period": 0.0,
+    "spinBox": 10,
+    "device_names": [
+        "binp/nbi/rfpowercontrol",
+        "binp/nbi/laudapy",
+        "binp/nbi/timing",
+        "binp/nbi/pg_offset"
+    ]
+}
