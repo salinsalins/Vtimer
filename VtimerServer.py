@@ -27,7 +27,7 @@ APPLICATION_VERSION = '1.5'
 DEFAULT_PORT = 'COM17'
 DEFAULT_ADDRESS = 1
 DEFAULT_READ_TIMEOUT = 1.0
-DEFAULT_CONFIG = {'port': 0, 'COM17': True, 'address': 1, 'device_type': 'Vtimer v1.0',
+DEFAULT_CONFIG = {'port': 'COM17', 'address': 1, 'device_type': 'Vtimer v1.0',
                   'mode': 0, 'last_duration': 0, 'last_time': 0.0,
                   'output': True, 'duration': 0, 'period': 0,
                   'periodic_start': False, 'auto_rearm': True, 'restore_state': True,
@@ -380,12 +380,14 @@ class VtimerServer(TangoServerPrototype):
         # set default config
         if not hasattr(self, 'config'):
             self.config = {}
-        for opt in DEFAULT_CONFIG:
-            if opt not in self.config:
-                self.config[opt] = DEFAULT_CONFIG[opt]
-        if self.config.get('restore_state', False):
-            DEFAULT_CONFIG.update(self.config)
-            self.config.update(DEFAULT_CONFIG)
+        for name in DEFAULT_CONFIG:
+            if name in self.config:
+                self.config[name] = type(DEFAULT_CONFIG[name])(self.config[name])
+            else:
+                self.config[name] = DEFAULT_CONFIG[name]
+        # if self.config.get('restore_state', False):
+        #     DEFAULT_CONFIG.update(self.config)
+        #     self.config.update(DEFAULT_CONFIG)
         # default values
         self.ready = False
         self.period_value = self.config['period']
@@ -411,18 +413,18 @@ class VtimerServer(TangoServerPrototype):
             for n in range(0, 12):
                 aname = f'channel_enable{n}'
                 setattr(self, aname, self.config[aname])
-                aname = f'channel_start{n}'
+                aname = f'pulse_start{n}'
                 setattr(self, aname, self.config[aname])
-                aname = f'channel_stop{n}'
+                aname = f'pulse_stop{n}'
                 setattr(self, aname, self.config[aname])
-            self.run.set_write_value(self.run)
-            self.mode.set_write_value(self.mode)
-            self.output.set_write_value(self.output)
-            self.period.set_write_value(self.period)
-            self.duration.set_write_value(self.duration)
-            self.periodic_start.set_write_value(self.periodic_start)
-            self.auto_rearm.set_write_value(self.auto_rearm)
-            self.restore_state.set_write_value(self.restore_state)
+            self.run.set_write_value(self.read_run())
+            self.mode.set_write_value(self.read_mode())
+            self.output.set_write_value(self.read_output())
+            self.period.set_write_value(self.read_period())
+            self.duration.set_write_value(self.read_duration())
+            self.periodic_start.set_write_value(self.read_periodic_start())
+            self.auto_rearm.set_write_value(self.read_auto_rearm())
+            self.restore_state.set_write_value(self.read_restore_state())
             # set state to running
             msg = 'Created successfully'
             self.set_state(DevState.RUNNING, msg)
@@ -744,6 +746,14 @@ class VtimerServer(TangoServerPrototype):
         self.config['periodic_start'] = v
         self.periodic_start_value = v
 
+    def write_restore_state(self, v: bool):
+        if self.tmr.ready:
+            self.set_running()
+        else:
+            self.set_fault()
+        self.config['restore_state'] = v
+        self.restore_state_value = v
+
     def write_period(self, v: float):
         if self.tmr.ready:
             self.set_running()
@@ -1039,9 +1049,12 @@ class VtimerServer(TangoServerPrototype):
 
     @command(dtype_in=None, doc_in='Restore timer state',
              dtype_out=bool)
-    def restore_state(self):
+    def restore_config(self):
         try:
             self.read_config_from_properties()
+            for name in DEFAULT_CONFIG:
+                if name in self.config:
+                    self.config[name] = type(DEFAULT_CONFIG[name])(self.config['mode'])
             self.write_mode(self.config['mode'])
             self.write_output(self.config['output'])
             self.write_duration(self.config['duration'])
