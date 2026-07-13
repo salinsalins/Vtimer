@@ -30,7 +30,7 @@ DEFAULT_READ_TIMEOUT = 1.0
 DEFAULT_CONFIG = {'port': 0, 'COM17': True, 'address': 1, 'device_type': 'Vtimer v1.0',
                   'mode': 0, 'last_duration': 0, 'last_time': 0.0,
                   'output': True, 'duration': 0, 'period': 0,
-                  'start_mode': False, 'auto_rearm': True, 'restore_state': True,
+                  'periodic_start': False, 'auto_rearm': True, 'restore_state': True,
                   'channel_enable0': False, 'pulse_start0': 0, 'pulse_stop0': 1,
                   'channel_enable1': False, 'pulse_start1': 0, 'pulse_stop1': 1,
                   'channel_enable2': False, 'pulse_start2': 0, 'pulse_stop2': 1,
@@ -378,8 +378,11 @@ class VtimerServer(TangoServerPrototype):
         self.set_state(DevState.INIT, msg)
         self.debug(msg)
         # set default config
-        if not hasattr(self, 'config') or not self.config:
-            self.config = DEFAULT_CONFIG
+        if not hasattr(self, 'config'):
+            self.config = {}
+        for opt in DEFAULT_CONFIG:
+            if opt not in self.config:
+                self.config[opt] = DEFAULT_CONFIG[opt]
         if self.config.get('restore_state', False):
             DEFAULT_CONFIG.update(self.config)
             self.config.update(DEFAULT_CONFIG)
@@ -730,6 +733,7 @@ class VtimerServer(TangoServerPrototype):
             self.set_running()
         else:
             self.set_fault()
+        self.config['auto_rearm'] = v
         self.auto_rearm_value = v
 
     def write_periodic_start(self, v: bool):
@@ -737,6 +741,7 @@ class VtimerServer(TangoServerPrototype):
             self.set_running()
         else:
             self.set_fault()
+        self.config['periodic_start'] = v
         self.periodic_start_value = v
 
     def write_period(self, v: float):
@@ -744,6 +749,7 @@ class VtimerServer(TangoServerPrototype):
             self.set_running()
         else:
             self.set_fault()
+        self.config['period'] = v
         self.period_value = v
 
     def write_run(self, value: int):
@@ -765,6 +771,7 @@ class VtimerServer(TangoServerPrototype):
             self.mode.set_value(value)
             self.mode.set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
+            self.config['mode'] = value
             return True
         self.mode.set_quality(AttrQuality.ATTR_INVALID)
         msg = 'Mode write error'
@@ -778,6 +785,7 @@ class VtimerServer(TangoServerPrototype):
             self.output.set_value(bool(value))
             self.output.set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
+            self.config['output'] = value
             return True
         self.output.set_quality(AttrQuality.ATTR_INVALID)
         msg = 'Output write error'
@@ -790,6 +798,7 @@ class VtimerServer(TangoServerPrototype):
         if result:
             self.duration.set_value(int(value))
             self.duration.set_quality(AttrQuality.ATTR_VALID)
+            self.config['duration'] = int(value)
             self.set_running()
             return True
         self.duration.set_quality(AttrQuality.ATTR_INVALID)
@@ -805,6 +814,7 @@ class VtimerServer(TangoServerPrototype):
             getattr(self, name).set_value(bool(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
+            self.config[name] = value
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} state write error'
@@ -819,6 +829,7 @@ class VtimerServer(TangoServerPrototype):
             getattr(self, name).set_value(int(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
+            self.config[name] = value
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} start time write error'
@@ -833,6 +844,7 @@ class VtimerServer(TangoServerPrototype):
             getattr(self, name).set_value(int(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
+            self.config[name] = value
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} stop time write error'
@@ -1048,12 +1060,10 @@ class VtimerServer(TangoServerPrototype):
             self.periodic_start.set_write_value(self.periodic_start)
             self.auto_rearm.set_write_value(self.auto_rearm)
             self.restore_state.set_write_value(self.restore_state)
-            # set state to running
-            msg = 'State restored'
-            self.info(msg)
+            self.info('State restored')
             return True
         except:
-            self.logger.error('State restore error')
+            self.error('State restore error')
             return False
     # endregion
 
