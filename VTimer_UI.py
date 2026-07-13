@@ -243,10 +243,9 @@ class MainWindow(QMainWindow):
             self.pushButton_34.hide()
             self.wtwdgts[-1].widget.hide()
             self.wtwdgts[-2].widget.hide()
-            # self.gridLayout.hide()
-        # ************
+
         # Defile callback task and start timer
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.timer_handler)
         self.timer.start(TIMER_PERIOD)
         # Welcome message
@@ -640,7 +639,7 @@ if __name__ == '__main__':
     # QtWidgets.qApp.processEvents() # Запускаем оборот цикла
     window = MainWindow()
     app.aboutToQuit.connect(window.onQuit)
-    window.setWindowTitle("Vtimer UI")
+    window.setWindowTitle(f"Vtimer UI v.{APPLICATION_VERSION}")
     window.show()
     # splash.finish(window)	# Скрываем заставку
     sys.exit(app.exec_())
