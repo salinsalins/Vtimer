@@ -5,8 +5,9 @@ import json
 import os
 import sys
 import time
+from threading import Lock
 
-from h5py.h5t import cfg
+from MatchType import match_type
 
 _u = os.path.dirname(os.path.realpath(sys.argv[0]))
 _util_path = os.path.join(os.path.split(_u)[0], 'TangoUtils')
@@ -27,9 +28,10 @@ APPLICATION_VERSION = '1.5'
 DEFAULT_PORT = 'COM17'
 DEFAULT_ADDRESS = 1
 DEFAULT_READ_TIMEOUT = 1.0
-DEFAULT_CONFIG = {'port': 'COM17', 'address': 1, 'device_type': 'Vtimer v1.0',
+DEFAULT_CONFIG = {'port': 'COM17', 'addr': 1, 'device_type': 'Vtimer v1.0',
                   'mode': 0, 'last_duration': 0, 'last_time': 0.0,
                   'output': True, 'duration': 0, 'period': 0,
+                  'read_timeout': DEFAULT_READ_TIMEOUT,
                   'periodic_start': False, 'auto_rearm': True, 'restore_state': True,
                   'channel_enable0': False, 'pulse_start0': 0, 'pulse_stop0': 1,
                   'channel_enable1': False, 'pulse_start1': 0, 'pulse_stop1': 1,
@@ -373,6 +375,7 @@ class VtimerServer(TangoServerPrototype):
     def init_device(self):
         super().init_device()
         #
+        self.lock = Lock()
         self.pre = f'{self.get_name()} Vtimer'
         msg = f'Initialization'
         self.set_state(DevState.INIT, msg)
@@ -380,14 +383,16 @@ class VtimerServer(TangoServerPrototype):
         # set default config
         if not hasattr(self, 'config'):
             self.config = {}
+        # print(self.config)
         for name in DEFAULT_CONFIG:
             if name in self.config:
-                self.config[name] = type(DEFAULT_CONFIG[name])(self.config[name])
+                self.config[name] = match_type(DEFAULT_CONFIG[name], self.config[name])
             else:
                 self.config[name] = DEFAULT_CONFIG[name]
         # if self.config.get('restore_state', False):
         #     DEFAULT_CONFIG.update(self.config)
         #     self.config.update(DEFAULT_CONFIG)
+        # print(self.config)
         # default values
         self.ready = False
         self.period_value = self.config['period']
@@ -410,13 +415,49 @@ class VtimerServer(TangoServerPrototype):
             self.write_mode(self.config['mode'])
             self.write_output(self.config['output'])
             self.write_duration(self.config['duration'])
+            self.write_channel_enable0(self.config['channel_enable0'])
+            self.write_channel_enable1(self.config['channel_enable1'])
+            self.write_channel_enable2(self.config['channel_enable2'])
+            self.write_channel_enable3(self.config['channel_enable3'])
+            self.write_channel_enable4(self.config['channel_enable4'])
+            self.write_channel_enable5(self.config['channel_enable5'])
+            self.write_channel_enable6(self.config['channel_enable6'])
+            self.write_channel_enable7(self.config['channel_enable7'])
+            self.write_channel_enable8(self.config['channel_enable8'])
+            self.write_channel_enable9(self.config['channel_enable9'])
+            self.write_channel_enable10(self.config['channel_enable10'])
+            self.write_channel_enable11(self.config['channel_enable11'])
+            self.write_pulse_stop0(self.config['pulse_stop0'])
+            self.write_pulse_stop1(self.config['pulse_stop1'])
+            self.write_pulse_stop2(self.config['pulse_stop2'])
+            self.write_pulse_stop3(self.config['pulse_stop3'])
+            self.write_pulse_stop4(self.config['pulse_stop4'])
+            self.write_pulse_stop5(self.config['pulse_stop5'])
+            self.write_pulse_stop6(self.config['pulse_stop6'])
+            self.write_pulse_stop7(self.config['pulse_stop7'])
+            self.write_pulse_stop8(self.config['pulse_stop8'])
+            self.write_pulse_stop9(self.config['pulse_stop9'])
+            self.write_pulse_stop10(self.config['pulse_stop10'])
+            self.write_pulse_stop11(self.config['pulse_stop11'])
+            self.write_pulse_start0(self.config['pulse_start0'])
+            self.write_pulse_start1(self.config['pulse_start1'])
+            self.write_pulse_start2(self.config['pulse_start2'])
+            self.write_pulse_start3(self.config['pulse_start3'])
+            self.write_pulse_start4(self.config['pulse_start4'])
+            self.write_pulse_start5(self.config['pulse_start5'])
+            self.write_pulse_start6(self.config['pulse_start6'])
+            self.write_pulse_start7(self.config['pulse_start7'])
+            self.write_pulse_start8(self.config['pulse_start8'])
+            self.write_pulse_start9(self.config['pulse_start9'])
+            self.write_pulse_start10(self.config['pulse_start10'])
+            self.write_pulse_start11(self.config['pulse_start11'])
             for n in range(0, 12):
                 aname = f'channel_enable{n}'
-                setattr(self, aname, self.config[aname])
+                getattr(self, aname).set_write_value(self.config[aname])
                 aname = f'pulse_start{n}'
-                setattr(self, aname, self.config[aname])
+                getattr(self, aname).set_write_value(self.config[aname])
                 aname = f'pulse_stop{n}'
-                setattr(self, aname, self.config[aname])
+                getattr(self, aname).set_write_value(self.config[aname])
             self.run.set_write_value(self.read_run())
             self.mode.set_write_value(self.read_mode())
             self.output.set_write_value(self.read_output())
@@ -437,6 +478,7 @@ class VtimerServer(TangoServerPrototype):
 
     def delete_device(self):
         self.save_state()
+        # print(self.config)
         self.tmr.__del__()
         super().delete_device()
         msg = 'Device has been deleted'
@@ -833,8 +875,10 @@ class VtimerServer(TangoServerPrototype):
         return False
 
     def write_pulse_start_n(self, n, value):
+        # print(f'write_pulse_start_n entry {n} {value}')
         name = f'pulse_start{n}'
         result = self.tmr.write_channel_start(n + 1, int(value))
+        # print(f'write_pulse_start_n result {result}')
         if result:
             getattr(self, name).set_value(int(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
@@ -848,8 +892,10 @@ class VtimerServer(TangoServerPrototype):
         return False
 
     def write_pulse_stop_n(self, n, value):
+        # print(f'write_pulse_stop_n entry {n} {value}')
         name = f'pulse_stop{n}'
         result = self.tmr.write_channel_stop(n + 1, int(value))
+        # print(f'write_pulse_stop_n result {result}')
         if result:
             getattr(self, name).set_value(int(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
@@ -1046,6 +1092,7 @@ class VtimerServer(TangoServerPrototype):
              dtype_out=None)
     def save_state(self):
         self.write_config_to_properties()
+        # print(self.config)
 
     @command(dtype_in=None, doc_in='Restore timer state',
              dtype_out=bool)
@@ -1061,9 +1108,9 @@ class VtimerServer(TangoServerPrototype):
             for n in range(0, 12):
                 aname = f'channel_enable{n}'
                 setattr(self, aname, self.config[aname])
-                aname = f'channel_start{n}'
+                aname = f'pulse_start{n}'
                 setattr(self, aname, self.config[aname])
-                aname = f'channel_stop{n}'
+                aname = f'pulse_stop{n}'
                 setattr(self, aname, self.config[aname])
             self.run.set_write_value(self.run)
             self.mode.set_write_value(self.mode)
@@ -1084,8 +1131,8 @@ class VtimerServer(TangoServerPrototype):
 def looping():
     for dn in TangoServerPrototype.devices:
         dev = TangoServerPrototype.devices[dn]
-        if dev.auto_rearm:
-            if not dev.pulse:
+        if dev.read_auto_rearm():
+            if not dev.read_pulse():
                 dev.get_ready()
         # if dev.periodic_start_value and dev.period_value > 0.0:
             # if dev.last_time_value + dev.period_value < time.time():

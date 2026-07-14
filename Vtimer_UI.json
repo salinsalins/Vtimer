@@ -2,15 +2,15 @@
     "log_level": 10,
     "main_window": {
         "size": [
-            382,
-            683
+            380,
+            685
         ],
         "position": [
-            2019,
-            -355
+            1420,
+            42
         ]
     },
-    "timer_device_name": "binp/nbi/timer1",
+    "timer_device_name": "binp/nbi/timer2",
     "periodical": false,
     "period": 0.0,
     "spinBox": 10,

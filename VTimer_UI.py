@@ -181,6 +181,7 @@ class MainWindow(QMainWindow):
         self.rf.attribute.sync_read = True
         # PG offset
         self.pg = TangoLED('binp/nbi/pg_offset/output_state', self.pushButton_31, sync_read=True)
+
         # combine all processed widgets
         self.widgets = (self.labels + self.wtwdgts + self.enable_widgets + self.stop_widgets + self.start_widgets)
         # time of update for widgets

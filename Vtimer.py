@@ -159,20 +159,24 @@ class Vtimer(ModbusDevice):
             return -1
 
     def write_channel_start(self, n: int, v: int) -> bool:
+        # print('write_channel_start', n, v)
         delay = [0, 0]
         delay[0] = v // 0x10000
         delay[1] = v % 0x10000
         result = self.modbus_write(16 * n + 1, delay)
+        # print('write_channel_start',result)
         if result != 2:
             return False
         self.start[n - 1] = v
         return True
 
     def write_channel_stop(self, n: int, v: int) -> bool:
+        # print('write_channel_stop', n, v)
         delay = [0, 0]
         delay[0] = v // 0x10000
         delay[1] = v % 0x10000
         result = self.modbus_write(16 * n + 3, delay)
+        # print('write_channel_stop result', result)
         if result != 2:
             return False
         self.stop[n - 1] = v
