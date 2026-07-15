@@ -446,7 +446,7 @@
       <item row="0" column="6">
        <widget class="QLabel" name="label_10">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -483,6 +483,9 @@
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_7">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -787,7 +790,7 @@
       <item row="2" column="7">
        <widget class="QCheckBox" name="checkBox_23">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -824,6 +827,9 @@
       </item>
       <item row="0" column="2">
        <widget class="QLabel" name="label_8">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -859,6 +865,9 @@
       </item>
       <item row="2" column="1" alignment="Qt::AlignHCenter">
        <widget class="QCheckBox" name="checkBox_20">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -898,7 +907,7 @@
       <item row="2" column="5" alignment="Qt::AlignHCenter">
        <widget class="QCheckBox" name="checkBox_22">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -935,6 +944,9 @@
       </item>
       <item row="2" column="3" alignment="Qt::AlignHCenter">
        <widget class="QCheckBox" name="checkBox_21">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -971,7 +983,7 @@
       <item row="0" column="4">
        <widget class="QLabel" name="label_9">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -2786,6 +2798,9 @@
       </property>
       <item>
        <widget class="QLabel" name="label_46">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -2821,6 +2836,9 @@
       </item>
       <item>
        <widget class="QSpinBox" name="spinBox_35">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -2856,6 +2874,9 @@
       </item>
       <item>
        <widget class="QSpinBox" name="spinBox_34">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -2891,6 +2912,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_34">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>PushButton</string>
         </property>

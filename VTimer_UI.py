@@ -594,6 +594,7 @@ class MainWindow(QMainWindow):
                 # check for external trigger
                 if self.last_shot_time + (self.read_max_time() / 1000.) < time.time():
                     self.last_shot_time = time.time()
+                    self.logger.info('External trigger detected')
             else:
                 # pulse is OFF LED -> OFF
                 if self.mode == 2:
@@ -643,7 +644,12 @@ if __name__ == '__main__':
     # QtWidgets.qApp.processEvents() # Запускаем оборот цикла
     window = MainWindow()
     app.aboutToQuit.connect(window.onQuit)
-    window.setWindowTitle(f"Vtimer UI v.{APPLICATION_VERSION}")
+    title = f"Vtimer UI v.{APPLICATION_VERSION}"
+    title = window.config.get("main_window", {"title": title})["title"]
+    window.setWindowTitle(title)
+    icon = window.config.get("icon_file", 'timer_icon2.png')
+    window.setWindowIcon(QtGui.QIcon(icon))  # icon
+    # window.setWindowIcon(QtGui.QIcon('timer.ico'))  # icon
     window.show()
     # splash.finish(window)	# Скрываем заставку
     sys.exit(app.exec_())

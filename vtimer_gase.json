@@ -6,16 +6,16 @@
             685
         ],
         "position": [
-            1398,
-            127
+            1423,
+            108
         ],
         "title": "Timer for HV"
     },
-    "timer_device_name": "binp/nbi/timer2",
+    "timer_device_name": "binp/nbi/timer1",
     "periodical": false,
     "period": 0.0,
     "spinBox": 0,
-    "icon_file": "timer_icon2.png",
+    "icon_file": "timer_icon1.png",
     "device_names": [
         "binp/nbi/rfpowercontrol",
         "binp/nbi/laudapy",
