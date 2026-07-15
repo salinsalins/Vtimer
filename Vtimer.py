@@ -18,7 +18,7 @@ class Vtimer(ModbusDevice):
     def __init__(self, port: str, addr: int, **kwargs):
         super().__init__(port, addr, **kwargs)
         self.id = 'Timer'
-        self.pre = f'{self.id} at {self.port}: {self.addr} '
+        self.pre = f'{self.id} at {self.port}:{self.addr} '
         self.config = {'settings': [0, 0, 0, 1, 1], 'channels': [[0, 0, 0, 0, 1, 0, 1, 1] for i in range(13)]}
         errors = 0
         if not hasattr(self, 'initialized'):
@@ -43,7 +43,7 @@ class Vtimer(ModbusDevice):
             self.info('has been initialized')
         else:
             self.initialized = False
-            self.info('has been initialized with errors')
+            self.warning('has been initialized with errors')
 
     @property
     def ready(self):

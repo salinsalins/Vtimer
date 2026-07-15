@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
             log_exception()
             txt = tango_exception_description(e)
             #     self.restore = True
-            QMessageBox.critical(None, 'VTimer device is unreacheable',
+            QMessageBox.critical(None, 'VTimer device is unreachable',
                                  txt + '\nProgram will quit.', QMessageBox.Ok)
             exit(-111)
         # declare additional devices
