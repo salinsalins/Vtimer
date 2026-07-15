@@ -42,7 +42,6 @@ TIMER_PERIOD = 300  # ms
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        # Initialization of the superclass
         super(MainWindow, self).__init__(None)
         # logging config
         self.logger = config_logger()
@@ -68,7 +67,8 @@ class MainWindow(QMainWindow):
         self.config['timer_device_name'] = self.timer_device_name
         self.period = self.config.get('period', 0.0)
         self.config['period'] = self.period
-        self.period = self.spinBox.value()
+        # self.period = self.spinBox.value()
+        self.spinBox.setValue(int(self.period))
         try:
             self.timer_device = tango.DeviceProxy(self.timer_device_name)
             self.timer_device.ping()
@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
             log_exception()
             txt = tango_exception_description(e)
             #     self.restore = True
-            QMessageBox.critical(None, 'VTimer device is absent',
+            QMessageBox.critical(None, 'VTimer device is unreacheable',
                                  txt + '\nProgram will quit.', QMessageBox.Ok)
             exit(-111)
         # declare additional devices
@@ -90,11 +90,11 @@ class MainWindow(QMainWindow):
             except DevFailed as e:
                 txt = 'Can not connect device %s' % d
                 log_exception(txt)
-                a = QMessageBox.question(None, f'VTimer critical error for {d}',
-                                         txt + '\n\nContinue?',
-                                         QMessageBox.Yes | QMessageBox.No)
-                if a == QMessageBox.No:
-                    exit(-111)
+                # a = QMessageBox.question(None, f'VTimer critical error for {d}',
+                #                          txt + '\n\nContinue?',
+                #                          QMessageBox.Yes | QMessageBox.No)
+                # if a == QMessageBox.No:
+                #     exit(-111)
         # Widgets definition
         self.enable_widgets = [
             TangoCheckBox(self.timer_device_name + '/channel_enable0', self.checkBox_8),  # ch0           2
@@ -139,7 +139,6 @@ class MainWindow(QMainWindow):
             TangoLabel(self.timer_device_name + '/channel_enable10', self.label_43, prop='label'),  # ch
             TangoLabel(self.timer_device_name + '/channel_enable11', self.label_44, prop='label'),  # ch11
         ]
-        # read/write attributes TangoWidgets list
         self.start_widgets = [
             TangoAbstractSpinBox(self.timer_device_name + '/pulse_start0', self.spinBox_10),  # ch1       14
             TangoAbstractSpinBox(self.timer_device_name + '/pulse_start1', self.spinBox_12),  # ch
@@ -157,8 +156,8 @@ class MainWindow(QMainWindow):
         self.wtwdgts = [
             # TangoAbstractSpinBox(self.timer_device_name + '/Period', self.spinBox),  # period             0
             # TangoComboBox(self.timer_device_name + '/Start_mode', self.comboBox),  # single/periodical    1
-            TangoAbstractSpinBox('binp/nbi/adc0/Acq_start', self.spinBox_34),  # adc start
-            TangoAbstractSpinBox('binp/nbi/adc0/Acq_stop', self.spinBox_35),  # adc stop
+            # TangoAbstractSpinBox('binp/nbi/adc0/Acq_start', self.spinBox_34),  # adc start
+            # TangoAbstractSpinBox('binp/nbi/adc0/Acq_stop', self.spinBox_35),  # adc stop
         ]
         # timer on led
         self.timer_on_led = TangoLED(self.timer_device_name + '/pulse', self.pushButton_29)
@@ -184,6 +183,7 @@ class MainWindow(QMainWindow):
 
         # combine all processed widgets
         self.widgets = (self.labels + self.wtwdgts + self.enable_widgets + self.stop_widgets + self.start_widgets)
+
         # time of update for widgets
         self.wtime = [time.time() for w in self.widgets]
 
@@ -245,7 +245,7 @@ class MainWindow(QMainWindow):
             self.wtwdgts[-1].widget.hide()
             self.wtwdgts[-2].widget.hide()
 
-        # Defile callback task and start timer
+        # Defile timer callback task and start timer
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.timer_handler)
         self.timer.start(TIMER_PERIOD)
@@ -591,6 +591,9 @@ class MainWindow(QMainWindow):
                     self.pushButton.show()
                 self.pushButton.setStyleSheet('color: red; font: bold')
                 self.pushButton.setText('Stop')
+                # check for external trigger
+                if self.last_shot_time + (self.read_max_time() / 1000.) < time.time():
+                    self.last_shot_time = time.time()
             else:
                 # pulse is OFF LED -> OFF
                 if self.mode == 2:

@@ -7,28 +7,27 @@ import sys
 import time
 from threading import Lock
 
-from MatchType import match_type
+from tango import AttrQuality, AttrWriteType, DispLevel
+from tango import DevState
+from tango.server import attribute, command
 
 _u = os.path.dirname(os.path.realpath(sys.argv[0]))
 _util_path = os.path.join(os.path.split(_u)[0], 'TangoUtils')
 if _util_path not in sys.path: sys.path.append(_util_path)
 del _u, _util_path
 
-from tango import AttrQuality, AttrWriteType, DispLevel
-from tango import DevState
-from tango.server import attribute, command
-
+from MatchType import match_type
 from TangoServerPrototype import TangoServerPrototype
 from Vtimer import Vtimer
 
 APPLICATION_NAME = 'Vtimer Python Tango Server'
 APPLICATION_NAME_SHORT = os.path.basename(__file__).replace('.py', '')
-APPLICATION_VERSION = '1.5'
+APPLICATION_VERSION = '2.0'
 
-DEFAULT_PORT = 'COM17'
+DEFAULT_PORT = 'COM4'
 DEFAULT_ADDRESS = 1
 DEFAULT_READ_TIMEOUT = 1.0
-DEFAULT_CONFIG = {'port': 'COM17', 'addr': 1, 'device_type': 'Vtimer v1.0',
+DEFAULT_CONFIG = {'port': 'COM4', 'addr': 1, 'device_type': 'Vtimer v1.0',
                   'mode': 0, 'last_duration': 0, 'last_time': 0.0,
                   'output': True, 'duration': 0, 'period': 0,
                   'read_timeout': DEFAULT_READ_TIMEOUT,
@@ -1026,9 +1025,10 @@ class VtimerServer(TangoServerPrototype):
     @command(dtype_in=None, doc_in='Start timer pulse',
              dtype_out=bool, doc_out='True if success')
     def start_pulse(self):
+        self.stop_pulse()
         result = self.tmr.write_run(3)
         if result == 1:
-            result = self.tmr.write_run(0)
+            # result = self.tmr.write_run(0)
             result = self.tmr.write_run(1)
             self.last_time_value = time.time()
             if result == 1:
@@ -1042,14 +1042,14 @@ class VtimerServer(TangoServerPrototype):
         self.set_fault(msg)
         return False
 
-    @command(dtype_in=None, doc_in='Start timer pulse',
-             dtype_out=bool, doc_out='True if success')
+    @command(dtype_in=None, doc_in='Unconditionnally Stop Timer Pulse',
+             dtype_out=bool, doc_out='True if Success')
     def stop_pulse(self):
         result = self.tmr.write_run(0)
         if result == 1:
             result = self.read_pulse()
             if result == 0:
-                self.set_running()
+                self.set_running("Pulse stopped")
                 return True
         msg = f'Stop Pulse Error {self.tmr.error}'
         self.set_fault(msg)
@@ -1062,6 +1062,10 @@ class VtimerServer(TangoServerPrototype):
         if result:
             self.info('Can not arm. Pulse in progress. Stop pulse first')
             return False
+        result = self.read_run()
+        if result == 2:
+            self.debug('Already armed')
+            return True
         result = self.tmr.write_run(3)
         if result == 1:
             result = self.tmr.write_run(0)

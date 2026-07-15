@@ -6,14 +6,14 @@
             685
         ],
         "position": [
-            1420,
-            42
+            1397,
+            357
         ]
     },
     "timer_device_name": "binp/nbi/timer2",
     "periodical": false,
     "period": 0.0,
-    "spinBox": 10,
+    "spinBox": 0,
     "device_names": [
         "binp/nbi/rfpowercontrol",
         "binp/nbi/laudapy",
