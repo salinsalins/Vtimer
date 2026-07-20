@@ -27,7 +27,7 @@ APPLICATION_VERSION = '2.0'
 DEFAULT_PORT = 'COM4'
 DEFAULT_ADDRESS = 1
 DEFAULT_READ_TIMEOUT = 1.0
-DEFAULT_CONFIG = {'port': 'COM4', 'addr': 1, 'device_type': 'Vtimer v1.0',
+DEFAULT_CONFIG = {'port': 'COM4', 'addr': 1, 'device_type': 'Vtimer v2.0',
                   'mode': 0, 'last_duration': 0, 'last_time': 0.0,
                   'output': True, 'duration': 0, 'period': 0,
                   'read_timeout': DEFAULT_READ_TIMEOUT,
