@@ -605,9 +605,10 @@ class MainWindow(QMainWindow):
             #
             # main loop updating widgets
             count = 0
-            while time.time() - t0 < TIMER_PERIOD / 1000.00 * 0.7:
+            while time.time() - t0 < TIMER_PERIOD / 1000.00 * 0.9:
                 if self.n < len(self.widgets) and self.widgets[self.n].widget.isVisible():
                     self.widgets[self.n].update()
+                    # self.logger.debug(f"Updating {self.n} {self.widgets[self.n]}")
                     if self.mode == 2:
                         if not self.widgets[self.n].compare():
                             self.widgets[self.n].widget.setStyleSheet('color: blue')

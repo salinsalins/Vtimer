@@ -374,7 +374,7 @@ class VtimerServer(TangoServerPrototype):
     # endregion
 
     def init_device(self):
-        time.sleep(0.5)
+        # time.sleep(0.5)
         super().init_device()
         #
         # self.lock = Lock()
@@ -392,6 +392,7 @@ class VtimerServer(TangoServerPrototype):
             else:
                 self.config[name] = DEFAULT_CONFIG[name]
         self.times = {}
+        self.values = {}
         self.ready = False
         self.period_value = self.config['period']
         self.periodic_start_value = self.config['periodic_start']
@@ -658,21 +659,31 @@ class VtimerServer(TangoServerPrototype):
         self.set_fault(msg)
         return 0
 
-    def read_channel_n(self, n):
+    def read_from_cache(self, name, func, args):
+        if (name in self.times and name in self.values
+                and time.time() - self.times[name] < self.read_valid_time):
+            value = self.values[name]
+        else:
+            value = func(*args)
+            self.times[name] = time.time()
+            self.values[name] = value
+        return value
+
+    def read_channel_enable(self, n):
         name = f'channel_enable{n}'
-        if not self.tmr.ready:
-            getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
-            msg = 'Vtimer not ready'
-            self.set_fault(msg)
-            return self.config[name]
-        if name in self.times and time.time() - self.times[name] > self.read_valid_time:
-            value = self.config[name]
-            self.logger.debug(f'Using saved value {value}')
+        # if not self.tmr.ready:
+        #     getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
+        #     msg = 'Vtimer not ready'
+        #     self.set_fault(msg)
+        #     return self.config[name]
+        if (name in self.times and name in self.values
+                and time.time() - self.times[name] < self.read_valid_time):
+            value = self.values[name]
+            self.logger.debug(f'Using saved {value} for {n}')
         else:
             value = self.tmr.read_channel_enable(n + 1)
             self.times[name] = time.time()
-            if value >= 0:
-                self.config[name] = value
+            self.values[name] = value
         if value >= 0:
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
@@ -684,19 +695,19 @@ class VtimerServer(TangoServerPrototype):
 
     def read_pulse_start_n(self, n):
         name = f'pulse_start{n}'
-        if not self.tmr.ready:
-            getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
-            msg = 'Vtimer not ready'
-            self.set_fault(msg)
-            return 0
-        if name in self.times and time.time() - self.times[name] > self.read_valid_time:
-            value = self.config[name]
-            self.logger.debug(f'Using saved value {value}')
+        # if not self.tmr.ready:
+        #     getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
+        #     msg = 'Vtimer not ready'
+        #     self.set_fault(msg)
+        #     return 0
+        if (name in self.times and name in self.values
+                and time.time() - self.times[name] < self.read_valid_time):
+            value = self.values[name]
+            self.logger.debug(f'Using saved {value} for {n}')
         else:
             value = self.tmr.read_channel_start(n + 1)
             self.times[name] = time.time()
-            if value >= 0:
-                self.config[name] = value
+            self.values[name] = value
         if value >= 0:
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             return value
@@ -707,19 +718,19 @@ class VtimerServer(TangoServerPrototype):
 
     def read_pulse_stop_n(self, n):
         name = f'pulse_stop{n}'
-        if not self.tmr.ready:
-            getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
-            msg = 'Vtimer not ready'
-            self.set_fault(msg)
-            return 0
-        if name in self.times and time.time() - self.times[name] > self.read_valid_time:
-            value = self.config[name]
-            self.logger.debug(f'Using saved value {value}')
+        # if not self.tmr.ready:
+        #     getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
+        #     msg = 'Vtimer not ready'
+        #     self.set_fault(msg)
+        #     return 0
+        if (name in self.times and name in self.values
+                and time.time() - self.times[name] < self.read_valid_time):
+            value = self.values[name]
+            self.logger.debug(f'Using saved {value} for {n}')
         else:
             value = self.tmr.read_channel_stop(n + 1)
             self.times[name] = time.time()
-            if value >= 0:
-                self.config[name] = value
+            self.values[name] = value
         if value >= 0:
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             # self.logger.debug('read %d %s', n, value)
@@ -732,7 +743,7 @@ class VtimerServer(TangoServerPrototype):
 
     # region ---------------- channel state attributes read --------------
     def read_channel_enable0(self):
-        return self.read_channel_n(0)
+        return self.read_channel_enable(0)
 
     def read_pulse_start0(self):
         return self.read_pulse_start_n(0)
@@ -741,7 +752,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(0)
 
     def read_channel_enable1(self):
-        return self.read_channel_n(1)
+        return self.read_channel_enable(1)
 
     def read_pulse_start1(self):
         return self.read_pulse_start_n(1)
@@ -750,7 +761,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(1)
 
     def read_channel_enable2(self):
-        return self.read_channel_n(2)
+        return self.read_channel_enable(2)
 
     def read_pulse_start2(self):
         return self.read_pulse_start_n(2)
@@ -759,7 +770,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(2)
 
     def read_channel_enable3(self):
-        return self.read_channel_n(3)
+        return self.read_channel_enable(3)
 
     def read_pulse_start3(self):
         return self.read_pulse_start_n(3)
@@ -768,7 +779,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(3)
 
     def read_channel_enable4(self):
-        return self.read_channel_n(4)
+        return self.read_channel_enable(4)
 
     def read_pulse_start4(self):
         return self.read_pulse_start_n(4)
@@ -777,7 +788,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(4)
 
     def read_channel_enable5(self):
-        return self.read_channel_n(5)
+        return self.read_channel_enable(5)
 
     def read_pulse_start5(self):
         return self.read_pulse_start_n(5)
@@ -786,7 +797,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(5)
 
     def read_channel_enable6(self):
-        return self.read_channel_n(6)
+        return self.read_channel_enable(6)
 
     def read_pulse_start6(self):
         return self.read_pulse_start_n(6)
@@ -795,7 +806,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(6)
 
     def read_channel_enable7(self):
-        return self.read_channel_n(7)
+        return self.read_channel_enable(7)
 
     def read_pulse_start7(self):
         return self.read_pulse_start_n(7)
@@ -804,7 +815,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(7)
 
     def read_channel_enable8(self):
-        return self.read_channel_n(8)
+        return self.read_channel_enable(8)
 
     def read_pulse_start8(self):
         return self.read_pulse_start_n(8)
@@ -813,7 +824,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(8)
 
     def read_channel_enable9(self):
-        return self.read_channel_n(9)
+        return self.read_channel_enable(9)
 
     def read_pulse_start9(self):
         return self.read_pulse_start_n(9)
@@ -822,7 +833,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(9)
 
     def read_channel_enable10(self):
-        return self.read_channel_n(10)
+        return self.read_channel_enable(10)
 
     def read_pulse_start10(self):
         return self.read_pulse_start_n(10)
@@ -831,7 +842,7 @@ class VtimerServer(TangoServerPrototype):
         return self.read_pulse_stop_n(10)
 
     def read_channel_enable11(self):
-        return self.read_channel_n(11)
+        return self.read_channel_enable(11)
 
     def read_pulse_start11(self):
         return self.read_pulse_start_n(11)
@@ -943,7 +954,6 @@ class VtimerServer(TangoServerPrototype):
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
             self.config[name] = value
-            self.times[name] = time.time()
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} state write error'
@@ -952,16 +962,13 @@ class VtimerServer(TangoServerPrototype):
         return False
 
     def write_pulse_start_n(self, n, value):
-        # print(f'write_pulse_start_n entry {n} {value}')
         name = f'pulse_start{n}'
         result = self.tmr.write_channel_start(n + 1, int(value))
-        # print(f'write_pulse_start_n result {result}')
         if result:
             getattr(self, name).set_value(int(value))
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
             self.config[name] = value
-            self.times[name] = time.time()
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} start time write error'
@@ -977,7 +984,6 @@ class VtimerServer(TangoServerPrototype):
             getattr(self, name).set_quality(AttrQuality.ATTR_VALID)
             self.set_running()
             self.config[name] = value
-            self.times[name] = time.time()
             return True
         getattr(self, name).set_quality(AttrQuality.ATTR_INVALID)
         msg = f'Channel {n} stop time write error'

@@ -9,14 +9,37 @@ del _u, _util_path
 
 from ModbusDevice import ModbusDevice
 
+import time
+from functools import wraps
+
+
+def timeit(func):
+    """Decorator that prints the elapsed time of a function."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()  # Record start time
+        result = func(*args, **kwargs)  # Execute function
+        end_time = time.perf_counter()  # Record end time
+
+        elapsed_time = end_time - start_time
+        print(f"Function '{func.__name__}' took {elapsed_time:.6f} seconds to execute.")
+        return result
+
+    return wrapper
+
+
 APPLICATION_NAME = 'Vtimer I/O modules Python API'
 APPLICATION_NAME_SHORT = 'Vtimer'
-APPLICATION_VERSION = '1.0'
-
+APPLICATION_VERSION = '1.2'
+ELAPSED = 0.0
 
 class Vtimer(ModbusDevice):
     def __init__(self, port: str, addr: int, **kwargs):
         super().__init__(port, addr, **kwargs)
+        self.read_time = [0.0]*13
+        self.read_data = [0]*13
+        self.read_valid_time = 0.5
         self.id = 'Timer'
         self.pre = f'{self.id} at {self.port}:{self.addr} '
         self.config = {'settings': [0, 0, 0, 1, 1], 'channels': [[0, 0, 0, 0, 1, 0, 1, 1] for i in range(13)]}
@@ -31,19 +54,20 @@ class Vtimer(ModbusDevice):
             self.output = 1
         v = self.modbus_write(0, self.config['settings'])
         if v != 5:
-            self.debug(f'Settings initialization error')
+            self.info(f'Settings initialization error')
             errors += 1
         for i in range(1, 13):
+            # self.debug(f'Initializing {i} {len(self.config['channels'])}')
             v = self.modbus_write(16 * i, self.config['channels'][i])
             if v != 8:
-                self.debug(f'Channel {i} initialization error')
+                self.info(f'Channel {i} initialization error')
                 errors += 1
         if errors == 0:
             self.initialized = True
-            self.info('has been initialized')
+            self.info('initialized')
         else:
             self.initialized = False
-            self.warning('has been initialized with errors')
+            self.warning('initialized with errors')
 
     @property
     def ready(self):
@@ -81,6 +105,24 @@ class Vtimer(ModbusDevice):
                 self.stop[n - 1] = v
                 return v
             return -1
+
+    def modbus_read(self, start: int, length: int=1, address=None, command=3):
+        # old = super().modbus_read(start, length, address, command)
+        if start < 16:
+            return super().modbus_read(start, length, address, command)
+        index = start // 16
+        if time.time() - self.read_time[index] < self.read_valid_time:
+            result = self.read_data[index]
+        else:
+            result = super().modbus_read(index * 16, 8, address, command)
+            self.read_data[index] = result
+            self.read_time[index] = time.time()
+        first = start % 16
+        new = result[first:first+length]
+        # if new != old:
+        #     print("Mismatch", old, new)
+        #     return old
+        return new
 
     def read_channel_enable(self, n: int) -> int:
         with self.com.lock:
@@ -499,26 +541,30 @@ if __name__ == "__main__":
     for i in range(n):
         v = ot1.write_channel_stop(1, 100)
     dt = ((time.time() - t_0) * 1000.0)  # ms
-    a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'write_stop(1)->', v, '%4f ms ' % (dt / n))
+    a = f'{ot1.port}:{ot1.addr} {n}x write_stop(1) -> {v} average {dt/n} ms'
     print(a)
     print('')
 
+    n = 100
     t_0 = time.time()
-    v = ot1.read_channel_start(1)
-    dt = int((time.time() - t_0) * 1000.0)  # ms
-    a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'read_start(1)->', v, '%4d ms ' % dt)
-    print(a)
-    print('')
-
-    t_0 = time.time()
-    v = ot1.read_channel_stop(1)
+    for i in range(n):
+        v = ot1.read_channel_start(1)
     dt = ((time.time() - t_0) * 1000.0)  # ms
-    a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'read_stop(1)->', v, '%4d ms ' % dt)
+    a = f'{ot1.port}:{ot1.addr} {n}x read_start(1)-> {v} average {dt/n} ms'
+    print(a)
+    print('')
+
+    n = 100
+    t_0 = time.time()
+    for i in range(n):
+        v = ot1.read_channel_stop(1)
+    dt = ((time.time() - t_0) * 1000.0)  # ms
+    a = f'{ot1.port}:{ot1.addr} {n}x read_stop(1)-> {v} average {dt/n} ms'
     print(a)
     print('')
 
     t_0 = time.time()
-    n = 500
+    n = 1
     v0 = ot1.write_output(1)
     # v1 = ot1.write_duration(12 * n + 1)
     for i in range(1, 13):
