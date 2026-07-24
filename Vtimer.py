@@ -530,11 +530,17 @@ if __name__ == "__main__":
         addr = sys.argv[2]
     except:
         addr = 1
+
     ot1 = Vtimer(port, addr)
+
     t_0 = time.time()
-    v = ot1.read_run()
+
+    n = 100
+    t_0 = time.time()
+    for i in range(n):
+        v = ot1.read_run()
     dt = int((time.time() - t_0) * 1000.0)  # ms
-    a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'read_run->', v, '%4d ms ' % dt)
+    a = '%s:%s %s %s %s' % (ot1.port, ot1.addr, 'read_run->', v, '%4d ms ' % dt/n)
     print(a)
     print('')
 
