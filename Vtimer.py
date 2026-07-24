@@ -106,23 +106,25 @@ class Vtimer(ModbusDevice):
                 return v
             return -1
 
-    def modbus_read(self, start: int, length: int=1, address=None, command=3):
-        # old = super().modbus_read(start, length, address, command)
-        if start < 16:
-            return super().modbus_read(start, length, address, command)
-        index = start // 16
-        if time.time() - self.read_time[index] < self.read_valid_time:
-            result = self.read_data[index]
-        else:
-            result = super().modbus_read(index * 16, 8, address, command)
-            self.read_data[index] = result
-            self.read_time[index] = time.time()
-        first = start % 16
-        new = result[first:first+length]
-        # if new != old:
-        #     print("Mismatch", old, new)
-        #     return old
-        return new
+    # def modbus_read(self, start: int, length: int=1, address=None, command=3):
+    #     old = super().modbus_read(start, length, address, command)
+    #     n = 8
+    #     if start < 16:
+    #         n = 9
+    #         # return super().modbus_read(start, length, address, command)
+    #     index = start // 16
+    #     if time.time() - self.read_time[index] < self.read_valid_time:
+    #         result = self.read_data[index]
+    #     else:
+    #         result = super().modbus_read(index * 16, n, address, command)
+    #         self.read_data[index] = result
+    #         self.read_time[index] = time.time()
+    #     first = start % 16
+    #     new = result[first:first+length]
+    #     if new != old:
+    #         print("Mismatch", old, new)
+    #         return old
+    #     return new
 
     def read_channel_enable(self, n: int) -> int:
         with self.com.lock:
