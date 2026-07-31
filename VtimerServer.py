@@ -1220,6 +1220,7 @@ def looping():
         if dev.read_auto_rearm():
             if not dev.read_pulse():
                 dev.get_ready()
+                # pass
         # if dev.periodic_start_value and dev.period_value > 0.0:
             # if dev.last_time_value + dev.period_value < time.time():
                 # dev.start_pulse()
