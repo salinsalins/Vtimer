@@ -1,0 +1,7 @@
+{
+    "python.defaultInterpreterPath": "H:\\pytango260708\\python.exe",
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python.analysis.extraPaths": [
+        "C:\Users\WinAdmin\Documents\PyCharmProjects\TangoUtils"
+    ]
+}
