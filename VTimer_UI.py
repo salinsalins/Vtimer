@@ -429,54 +429,51 @@ class MainWindow(QMainWindow):
     def save_state(self, state=None):
         if state is None:
             state = self.get_state()
-        if state == self.last_state:
-            self.logger.debug('State save ignored')
-            return None
         self.saved_states.append(state)
         self.last_state = state
         self.logger.debug('State saved to index %s', len(self.saved_states) - 1)
         return state
 
     def get_state(self):
-        func_list = [self.checkBox_8.isChecked,
-                     self.spinBox_10.value,
-                     self.spinBox_11.value,
-                     self.checkBox_9.isChecked,
-                     self.spinBox_12.value,
-                     self.spinBox_13.value,
-                     self.checkBox_10.isChecked,
-                     self.spinBox_14.value,
-                     self.spinBox_15.value,
-                     self.checkBox_11.isChecked,
-                     self.spinBox_16.value,
-                     self.spinBox_17.value,
-                     self.checkBox_12.isChecked,
-                     self.spinBox_18.value,
-                     self.spinBox_19.value,
-                     self.checkBox_13.isChecked,
-                     self.spinBox_20.value,
-                     self.spinBox_21.value,
-                     self.checkBox_14.isChecked,
-                     self.spinBox_22.value,
-                     self.spinBox_23.value,
-                     self.checkBox_15.isChecked,
-                     self.spinBox_24.value,
-                     self.spinBox_25.value,
-                     self.checkBox_16.isChecked,
-                     self.spinBox_26.value,
-                     self.spinBox_27.value,
-                     self.checkBox_17.isChecked,
-                     self.spinBox_28.value,
-                     self.spinBox_29.value,
-                     self.checkBox_18.isChecked,
-                     self.spinBox_30.value,
-                     self.spinBox_31.value,
-                     self.checkBox_19.isChecked,
-                     self.spinBox_32.value,
-                     self.spinBox_33.value,
-                     self.spinBox_34.value,
-                     self.spinBox_35.value]
-        state = [f() for f in func_list]
+        state = [self.checkBox_8.isChecked(),
+                     self.spinBox_10.value(),
+                     self.spinBox_11.value(),
+                     self.checkBox_9.isChecked(),
+                     self.spinBox_12.value(),
+                     self.spinBox_13.value(),
+                     self.checkBox_10.isChecked(),
+                     self.spinBox_14.value(),
+                     self.spinBox_15.value(),
+                     self.checkBox_11.isChecked(),
+                     self.spinBox_16.value(),
+                     self.spinBox_17.value(),
+                     self.checkBox_12.isChecked(),
+                     self.spinBox_18.value(),
+                     self.spinBox_19.value(),
+                     self.checkBox_13.isChecked(),
+                     self.spinBox_20.value(),
+                     self.spinBox_21.value(),
+                     self.checkBox_14.isChecked(),
+                     self.spinBox_22.value(),
+                     self.spinBox_23.value(),
+                     self.checkBox_15.isChecked(),
+                     self.spinBox_24.value(),
+                     self.spinBox_25.value(),
+                     self.checkBox_16.isChecked(),
+                     self.spinBox_26.value(),
+                     self.spinBox_27.value(),
+                     self.checkBox_17.isChecked(),
+                     self.spinBox_28.value(),
+                     self.spinBox_29.value(),
+                     self.checkBox_18.isChecked(),
+                     self.spinBox_30.value(),
+                     self.spinBox_31.value(),
+                     self.checkBox_19.isChecked(),
+                     self.spinBox_32.value(),
+                     self.spinBox_33.value(),
+                     self.spinBox_34.value(),
+                     self.spinBox_35.value(),
+                     time.time]
         return state
 
     def set_state(self, state=None):
@@ -526,7 +523,7 @@ class MainWindow(QMainWindow):
                      self.spinBox_33.setValue,
                      self.spinBox_34.setValue,
                      self.spinBox_35.setValue]
-        for i in range(len(state)):
+        for i in range(len(func_list)):
             func_list[i](state[i])
         self.last_state = state
         self.logger.debug('State has been restored from %s', state_id)
