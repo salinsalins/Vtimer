@@ -135,7 +135,7 @@ class Vtimer(ModbusDevice):
             else:
                 return -1
 
-    def read_channel(self, n: int) -> [int]:
+    def read_channel(self, n: int) -> list[int]:
         with self.com.lock:
             result = self.modbus_read(16 * n, 5)
             if len(result) != 5:
@@ -370,7 +370,7 @@ class VirtualVtimer(ModbusDevice):
             else:
                 return -1
 
-    def read_channel(self, n: int) -> [int]:
+    def read_channel(self, n: int) -> list[int]:
         with self.com.lock:
             result = self.modbus_read(16 * n, 5)
             if len(result) != 5:
