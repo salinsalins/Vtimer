@@ -575,11 +575,18 @@ class MainWindow(QMainWindow):
                 if self.periodical and self.period > 0.0:
                     if time.time() - self.last_shot_time >= self.period:
                         if self.is_pulse_on():
-                            QMessageBox.critical(self, 'Wrong Period',
-                                                 'Shot is on during period expired', QMessageBox.Ok)
+                            QMessageBox.critical(self, 'Cant Switch to Periodical',
+                                                 'Pulse is still on, wait.', QMessageBox.Ok)
+                            # switch to single
                             self.single_periodical_callback(0)
                         else:
-                            self.start_pulse()
+                            if (self.read_max_time() / 1000.) >= self.period:
+                                QMessageBox.critical(self, 'Wrong Period',
+                                                    'Period is shorter than pulse length.', QMessageBox.Ok)
+                                # switch to single
+                                self.single_periodical_callback(0)
+                            else:
+                                self.start_pulse()
                 self.update_elapsed()
                 self.update_remained()
             if self.is_pulse_on():
@@ -600,7 +607,6 @@ class MainWindow(QMainWindow):
                 if self.comboBox.currentIndex() == 0:
                     self.pushButton.setText('Shoot')
             #
-            # main loop updating widgets
             count = 0
             while time.time() - t0 < TIMER_PERIOD / 1000.00 * 0.9:
                 if self.n < len(self.widgets) and self.widgets[self.n].widget.isVisible():
@@ -632,14 +638,7 @@ if __name__ == '__main__':
         CONFIG_FILE = sys.argv[1]
         if not CONFIG_FILE.endswith('.json'):
             CONFIG_FILE += '.json'
-    # Create the GUI application
     app = QApplication(sys.argv)
-    # Instantiate the main window
-    # # splash = QtWidgets.QSplashScreen(QtGui.QPixmap("IAM.jpg") )
-    # # splash.showMessage("Connecting to TANGO devices ...",
-    # #              QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom, QtCore.Qt.white)
-    # # splash.show()                  # Отображаем заставку
-    # QtWidgets.qApp.processEvents() # Запускаем оборот цикла
     window = MainWindow()
     app.aboutToQuit.connect(window.onQuit)
     title = f"Vtimer UI v.{APPLICATION_VERSION}"
@@ -647,7 +646,5 @@ if __name__ == '__main__':
     window.setWindowTitle(title)
     icon = window.config.get("icon_file", 'timer_icon2.png')
     window.setWindowIcon(QtGui.QIcon(icon))  # icon
-    # window.setWindowIcon(QtGui.QIcon('timer.ico'))  # icon
     window.show()
-    # splash.finish(window)	# Скрываем заставку
     sys.exit(app.exec_())
