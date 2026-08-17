@@ -1,6 +1,5 @@
 /.idea/
-/~*.docx
-__pycache__/
-*.json
 /.vscode/
-.vscode/settings.json
+~*.doc
+*.code-workspace
+/_pycache_/

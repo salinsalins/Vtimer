@@ -432,54 +432,51 @@ class MainWindow(QMainWindow):
     def save_state(self, state=None):
         if state is None:
             state = self.get_state()
-        if state == self.last_state:
-            self.logger.debug('State save ignored')
-            return None
         self.saved_states.append(state)
         self.last_state = state
         self.logger.debug('State saved to index %s', len(self.saved_states) - 1)
         return state
 
     def get_state(self):
-        func_list = [self.checkBox_8.isChecked,
-                     self.spinBox_10.value,
-                     self.spinBox_11.value,
-                     self.checkBox_9.isChecked,
-                     self.spinBox_12.value,
-                     self.spinBox_13.value,
-                     self.checkBox_10.isChecked,
-                     self.spinBox_14.value,
-                     self.spinBox_15.value,
-                     self.checkBox_11.isChecked,
-                     self.spinBox_16.value,
-                     self.spinBox_17.value,
-                     self.checkBox_12.isChecked,
-                     self.spinBox_18.value,
-                     self.spinBox_19.value,
-                     self.checkBox_13.isChecked,
-                     self.spinBox_20.value,
-                     self.spinBox_21.value,
-                     self.checkBox_14.isChecked,
-                     self.spinBox_22.value,
-                     self.spinBox_23.value,
-                     self.checkBox_15.isChecked,
-                     self.spinBox_24.value,
-                     self.spinBox_25.value,
-                     self.checkBox_16.isChecked,
-                     self.spinBox_26.value,
-                     self.spinBox_27.value,
-                     self.checkBox_17.isChecked,
-                     self.spinBox_28.value,
-                     self.spinBox_29.value,
-                     self.checkBox_18.isChecked,
-                     self.spinBox_30.value,
-                     self.spinBox_31.value,
-                     self.checkBox_19.isChecked,
-                     self.spinBox_32.value,
-                     self.spinBox_33.value,
-                     self.spinBox_34.value,
-                     self.spinBox_35.value]
-        state = [f() for f in func_list]
+        state = [self.checkBox_8.isChecked(),
+                     self.spinBox_10.value(),
+                     self.spinBox_11.value(),
+                     self.checkBox_9.isChecked(),
+                     self.spinBox_12.value(),
+                     self.spinBox_13.value(),
+                     self.checkBox_10.isChecked(),
+                     self.spinBox_14.value(),
+                     self.spinBox_15.value(),
+                     self.checkBox_11.isChecked(),
+                     self.spinBox_16.value(),
+                     self.spinBox_17.value(),
+                     self.checkBox_12.isChecked(),
+                     self.spinBox_18.value(),
+                     self.spinBox_19.value(),
+                     self.checkBox_13.isChecked(),
+                     self.spinBox_20.value(),
+                     self.spinBox_21.value(),
+                     self.checkBox_14.isChecked(),
+                     self.spinBox_22.value(),
+                     self.spinBox_23.value(),
+                     self.checkBox_15.isChecked(),
+                     self.spinBox_24.value(),
+                     self.spinBox_25.value(),
+                     self.checkBox_16.isChecked(),
+                     self.spinBox_26.value(),
+                     self.spinBox_27.value(),
+                     self.checkBox_17.isChecked(),
+                     self.spinBox_28.value(),
+                     self.spinBox_29.value(),
+                     self.checkBox_18.isChecked(),
+                     self.spinBox_30.value(),
+                     self.spinBox_31.value(),
+                     self.checkBox_19.isChecked(),
+                     self.spinBox_32.value(),
+                     self.spinBox_33.value(),
+                     self.spinBox_34.value(),
+                     self.spinBox_35.value(),
+                     time.time]
         return state
 
     def set_state(self, state=None):
@@ -529,7 +526,7 @@ class MainWindow(QMainWindow):
                      self.spinBox_33.setValue,
                      self.spinBox_34.setValue,
                      self.spinBox_35.setValue]
-        for i in range(len(state)):
+        for i in range(len(func_list)):
             func_list[i](state[i])
         self.last_state = state
         self.logger.debug('State has been restored from %s', state_id)
@@ -581,11 +578,18 @@ class MainWindow(QMainWindow):
                 if self.periodical and self.period > 0.0:
                     if time.time() - self.last_shot_time >= self.period:
                         if self.is_pulse_on():
-                            QMessageBox.critical(self, 'Wrong Period',
-                                                 'Shot is on during period expired', QMessageBox.Ok)
+                            QMessageBox.critical(self, 'Cant Switch to Periodical',
+                                                 'Pulse is still on, wait.', QMessageBox.Ok)
+                            # switch to single
                             self.single_periodical_callback(0)
                         else:
-                            self.start_pulse()
+                            if (self.read_max_time() / 1000.) >= self.period:
+                                QMessageBox.critical(self, 'Wrong Period',
+                                                    'Period is shorter than pulse length.', QMessageBox.Ok)
+                                # switch to single
+                                self.single_periodical_callback(0)
+                            else:
+                                self.start_pulse()
                 self.update_elapsed()
                 self.update_remained()
             if self.is_pulse_on():
@@ -606,7 +610,6 @@ class MainWindow(QMainWindow):
                 if self.comboBox.currentIndex() == 0:
                     self.pushButton.setText('Shoot')
             #
-            # main loop updating widgets
             count = 0
             while time.time() - t0 < TIMER_PERIOD / 1000.00 * 0.9:
                 if self.n < len(self.widgets) and self.widgets[self.n].widget.isVisible():
@@ -638,14 +641,7 @@ if __name__ == '__main__':
         CONFIG_FILE = sys.argv[1]
         if not CONFIG_FILE.endswith('.json'):
             CONFIG_FILE += '.json'
-    # Create the GUI application
     app = QApplication(sys.argv)
-    # Instantiate the main window
-    # # splash = QtWidgets.QSplashScreen(QtGui.QPixmap("IAM.jpg") )
-    # # splash.showMessage("Connecting to TANGO devices ...",
-    # #              QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom, QtCore.Qt.white)
-    # # splash.show()                  # Отображаем заставку
-    # QtWidgets.qApp.processEvents() # Запускаем оборот цикла
     window = MainWindow()
     app.aboutToQuit.connect(window.onQuit)
     title = f"Vtimer UI v.{APPLICATION_VERSION}"
@@ -653,7 +649,5 @@ if __name__ == '__main__':
     window.setWindowTitle(title)
     icon = window.config.get("icon_file", 'timer_icon2.png')
     window.setWindowIcon(QtGui.QIcon(icon))  # icon
-    # window.setWindowIcon(QtGui.QIcon('timer.ico'))  # icon
     window.show()
-    # splash.finish(window)	# Скрываем заставку
     sys.exit(app.exec_())
