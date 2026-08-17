@@ -36,6 +36,7 @@ APPLICATION_NAME_SHORT = APPLICATION_NAME
 APPLICATION_VERSION = '2.0'
 CONFIG_FILE = APPLICATION_NAME_SHORT + '.json'
 UI_FILE = APPLICATION_NAME_SHORT + '.ui'
+ICON_FILE = APPLICATION_NAME_SHORT + '.png'
 
 TIMER_PERIOD = 300  # ms
 
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(None)
         # logging config
         self.logger = config_logger()
-        #
+        # saved states deque
         self.saved_states = deque(maxlen=100)
         self.last_state = []
         # members definition
@@ -59,16 +60,18 @@ class MainWindow(QMainWindow):
         # Default main window parameters
         self.resize(QSize(480, 640))  # size
         self.move(QPoint(50, 50))  # position
-        self.setWindowTitle(APPLICATION_NAME)  # title
+        # title
+        self.setWindowTitle(APPLICATION_NAME)
         # restore settings
         restore_settings(self, widgets=[self.spinBox], file_name=CONFIG_FILE)
-        #
+        # timer device
         self.timer_device_name = self.config.get('timer_device_name', 'binp/nbi/timer1')
         self.config['timer_device_name'] = self.timer_device_name
+        # periodic operation 
         self.period = self.config.get('period', 0.0)
         self.config['period'] = self.period
-        # self.period = self.spinBox.value()
         self.spinBox.setValue(int(self.period))
+
         try:
             self.timer_device = tango.DeviceProxy(self.timer_device_name)
             self.timer_device.ping()
@@ -97,18 +100,18 @@ class MainWindow(QMainWindow):
                 #     exit(-111)
         # Widgets definition
         self.enable_widgets = [
-            TangoCheckBox(self.timer_device_name + '/channel_enable0', self.checkBox_8),  # ch0           2
-            TangoCheckBox(self.timer_device_name + '/channel_enable1', self.checkBox_9),  # ch1           3
-            TangoCheckBox(self.timer_device_name + '/channel_enable2', self.checkBox_10),  # ch2          4
-            TangoCheckBox(self.timer_device_name + '/channel_enable3', self.checkBox_11),  # ch3          5
-            TangoCheckBox(self.timer_device_name + '/channel_enable4', self.checkBox_12),  # ch4
-            TangoCheckBox(self.timer_device_name + '/channel_enable5', self.checkBox_13),  # ch5
-            TangoCheckBox(self.timer_device_name + '/channel_enable6', self.checkBox_14),  # ch6
-            TangoCheckBox(self.timer_device_name + '/channel_enable7', self.checkBox_15),  # ch7
-            TangoCheckBox(self.timer_device_name + '/channel_enable8', self.checkBox_16),  # ch8
-            TangoCheckBox(self.timer_device_name + '/channel_enable9', self.checkBox_17),  # ch9
-            TangoCheckBox(self.timer_device_name + '/channel_enable10', self.checkBox_18),  # ch10
-            TangoCheckBox(self.timer_device_name + '/channel_enable11', self.checkBox_19),  # ch11        13
+            TangoCheckBox(self.timer_device_name + '/channel_enable0', self.checkBox_8),
+            TangoCheckBox(self.timer_device_name + '/channel_enable1', self.checkBox_9),
+            TangoCheckBox(self.timer_device_name + '/channel_enable2', self.checkBox_10),
+            TangoCheckBox(self.timer_device_name + '/channel_enable3', self.checkBox_11),
+            TangoCheckBox(self.timer_device_name + '/channel_enable4', self.checkBox_12),
+            TangoCheckBox(self.timer_device_name + '/channel_enable5', self.checkBox_13),
+            TangoCheckBox(self.timer_device_name + '/channel_enable6', self.checkBox_14),
+            TangoCheckBox(self.timer_device_name + '/channel_enable7', self.checkBox_15),
+            TangoCheckBox(self.timer_device_name + '/channel_enable8', self.checkBox_16),
+            TangoCheckBox(self.timer_device_name + '/channel_enable9', self.checkBox_17),
+            TangoCheckBox(self.timer_device_name + '/channel_enable10', self.checkBox_18),
+            TangoCheckBox(self.timer_device_name + '/channel_enable11', self.checkBox_19),
         ]
         self.stop_widgets = [
             TangoAbstractSpinBox(self.timer_device_name + '/pulse_stop0', self.spinBox_11),  # ch0        26

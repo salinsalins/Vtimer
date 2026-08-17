@@ -1,14 +1,4 @@
-#print('AllOff')
-self.checkBox_8.setChecked(False)
-self.checkBox_9.setChecked(False)
-self.checkBox_10.setChecked(False)
-self.checkBox_11.setChecked(False)
-self.checkBox_12.setChecked(False)
-self.checkBox_13.setChecked(False)
-self.checkBox_14.setChecked(False)
-self.checkBox_15.setChecked(False)
-self.checkBox_16.setChecked(False)
-self.checkBox_17.setChecked(False)
-self.checkBox_18.setChecked(False)
-self.checkBox_19.setChecked(False)
+self.save_state()
+for widget in self.enable_widgets:
+    widget.widget.setChecked(False)
 
